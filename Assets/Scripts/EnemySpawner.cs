@@ -1,33 +1,57 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 public class EnemySpawner : MonoBehaviour
 {
-    public GameObject enemyPrefab; // Assign the enemy prefab in the Inspector
-    public float spawnInterval = 2f; // Interval between spawns
-    public int maxEnemies = 10; // Maximum number of enemies to spawn
+    public GameObject enemyPrefab;
+    public float spawnInterval = 2f;
+    public int maxEnemies = 10;
+    public GameObject player; // Public reference to the player GameObject
 
     private int currentEnemies = 0;
     private float timer = 0f;
 
     void Update()
     {
-        // Check if we can spawn a new enemy
         if (currentEnemies < maxEnemies)
         {
-            timer += Time.deltaTime; // Increment timer
+            timer += Time.deltaTime;
             if (timer >= spawnInterval)
             {
-                SpawnEnemy(); // Spawn an enemy
-                timer = 0f; // Reset timer
+                SpawnEnemy();
+                timer = 0f;
             }
         }
+
+        // Update enemy destinations
+        UpdateEnemyDestinations();
     }
 
     void SpawnEnemy()
     {
-        // Instantiate the enemy prefab at the spawner's position and rotation
-        Instantiate(enemyPrefab, transform.position, transform.rotation);
-        currentEnemies++; // Increment the count of current enemies
+        GameObject enemy = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
+        NavMeshAgent agent = enemy.GetComponent<NavMeshAgent>();
+        if (agent != null && player != null)
+        {
+            // Set the destination of the NavMeshAgent to the player's position
+            agent.SetDestination(player.transform.position);
+        }
+        currentEnemies++;
+    }
+
+    void UpdateEnemyDestinations()
+    {
+        // Update destinations for existing enemies
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        foreach (GameObject enemy in enemies)
+        {
+            NavMeshAgent agent = enemy.GetComponent<NavMeshAgent>();
+            if (agent != null && player != null)
+            {
+                // Set the destination of the NavMeshAgent to the player's position
+                agent.SetDestination(player.transform.position);
+            }
+        }
     }
 
     // Call this method to decrease the count of current enemies
